@@ -16,11 +16,11 @@ renderModule =
 renderBlock : Elm.Docs.Block -> String
 renderBlock block =
     case block of
-        Elm.Docs.UnionBlock union ->
+        Elm.Docs.UnionBlock { name, comment, args, tags } ->
             ""
 
-        Elm.Docs.MarkdownBlock _ ->
-            ""
+        Elm.Docs.MarkdownBlock md ->
+            md
 
         Elm.Docs.AliasBlock _ ->
             ""
@@ -31,5 +31,5 @@ renderBlock block =
         Elm.Docs.BinopBlock _ ->
             ""
 
-        Elm.Docs.UnknownBlock _ ->
-            ""
+        Elm.Docs.UnknownBlock unknown ->
+            unknown
