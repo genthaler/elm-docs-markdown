@@ -1,11 +1,11 @@
-port module Ports exposing (Response(..), decoder, echoRequest, exit, fileReadRequest, fileWriteRequest, rawResponse, request, response, shellRequest)
+port module Ports exposing (Response(..), echoRequest, exit, fileReadRequest, fileWriteRequest, response, shellRequest)
 
 import Json.Decode as D
 import Json.Decode.Extra as JDE
 import Json.Encode as E
 import Result.Extra
 
-
+ 
 
 -- Request
 

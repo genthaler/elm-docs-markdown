@@ -6,9 +6,9 @@ import Cli.Program as Program
 import Model exposing (CliOptions, Format(..))
 
 
-config : Program.Config Options
+config : Program.Config CliOptions
 config =
-    Program.config
+    Program.config 
         |> Program.add
             (OptionsParser.build CliOptions
                 |> OptionsParser.with

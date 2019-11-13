@@ -1,13 +1,14 @@
 module Main exposing (main)
 
 import Cli.Program as Program
-import Elm.Project exposing (..)
+import Elm.Docs
 import Json.Decode as D
-import Json.Encode as E
-import Model exposing (..)
+import Model exposing (CliOptions, Model(..), toExit, toInit, toReading, toWriting)
 import Options exposing (config)
-import Ports exposing (..)
+import Ports exposing (Response(..), echoRequest, exit, fileReadRequest, fileWriteRequest, response)
+import Result.Extra
 import StateMachine exposing (State(..), map, untag)
+import Task
 
 
 message : msg -> Cmd msg
@@ -17,7 +18,7 @@ message msg =
 
 init : Program.FlagsIncludingArgv flags -> CliOptions -> ( Model, Cmd Response )
 init _ options =
-    ( toInit options, Cmd.batch [ echoRequest initMessage, message NoOp ] )
+    ( toInit options, Cmd.batch [ echoRequest ("Reading " ++ options.input), message NoOp ] )
 
 
 update : CliOptions -> Response -> Model -> ( Model, Cmd Response )
@@ -27,7 +28,7 @@ update _ msg model =
             Err stderr
 
         ( Init state, _ ) ->
-            Ok ( toReading state, fileReadRequest [ state.input ] )
+            Ok ( toReading state, fileReadRequest [ state |> untag |> .input ] )
 
         ( Reading state, Stdout stdout ) ->
             stdout
@@ -36,14 +37,14 @@ update _ msg model =
                    )
                 |> Result.map
                     (\moduleList ->
-                        ( toWwriting state
+                        ( toWriting <| State { output = state |> untag |> .output, format = state |> untag |> .format }
                         , fileWriteRequest
-                            [ ( [ state.output ], Debug.todo "pretty print moduleList" moduleList ) ]
+                            [ ( [ state |> untag |> .output ], Debug.todo "pretty print moduleList" moduleList ) ]
                         )
                     )
 
-        ( Writing state, Stdout stdout ) ->
-            ( toExit {}, Cmd.batch [ echoRequest exitMessage ] )
+        ( Writing _, Stdout _ ) ->
+            Ok ( toExit <| State {}, Cmd.batch [ exit 0 "Done" ] )
 
         ( state, cmd ) ->
             let
@@ -56,7 +57,7 @@ update _ msg model =
 
 
 subscriptions : Model -> Sub Response
-subscriptions model =
+subscriptions _ =
     response
 
 

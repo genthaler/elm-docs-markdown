@@ -1,41 +1,42 @@
 #!/usr/bin/env node
-const shell = require('shelljs')
-const path = require('path')
-const elm = require(path.resolve(__dirname, 'elm.js'))
+const shell = require('shelljs');
+const path = require('path');
+const elm = require(path.resolve(__dirname, 'elm.js'));
 
-const worker = elm.Elm.Supervisor.Main.init({
+const worker = elm.Elm.Main.init({
   flags: {
-    argv: process.argv
+    argv: process.argv,
+    versionMessage : "1.0"
   }
-})
+});
 
-const send = worker.ports.rawResponse.send
+const send = worker.ports.rawResponse.send;
 
 worker.ports.request.subscribe(
   cmd => {
     switch (cmd.command) {
       case "Echo":
-        shell.echo(cmd.message)
-        break
+        shell.echo(cmd.message);
+        break;
 
       case "FileRead":
-        send(shell.cat(path.resolve.apply(null, cmd.paths)))
-        break
+        send(shell.cat(path.resolve.apply(null, cmd.paths)));
+        break;
 
       case "FileWrite":
-        send(shell.echo(cmd.fileContent).to(path.resolve.apply(null, cmd.paths)))
-        break
+        send(shell.echo(cmd.fileContent).to(path.resolve.apply(null, cmd.paths)));
+        break;
 
       case "Exit":
-        shell.echo(cmd.message)
-        shell.exit(cmd.exitCode)
-        break
+        shell.echo(cmd.message);
+        shell.exit(cmd.exitCode);
+        break;
 
       default:
         send({
           exitCode: 1,
           stderr: cmd.command + " sent on the wrong port"
-        })
-        break
+        });
+        break;
     }
-  })
+  });
