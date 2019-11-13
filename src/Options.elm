@@ -1,42 +1,30 @@
-module Supervisor.Options exposing (config)
+module Options exposing (config)
 
 import Cli.Option as Option
 import Cli.OptionsParser as OptionsParser
 import Cli.Program as Program
-import Supervisor.Model exposing (..)
-import Supervisor.Package exposing (..)
+import Model exposing (CliOptions, Format(..))
 
 
-config : Program.Config CliOptions
+config : Program.Config Options
 config =
-    Program.config { version = cucumberVersionString }
+    Program.config
         |> Program.add
-            (OptionsParser.buildSubCommand "init" InitOptions
-                |> OptionsParser.with (Option.optionalKeywordArg "compiler")
-                |> OptionsParser.map Init
-            )
-        |> Program.add
-            (OptionsParser.build RunOptions
+            (OptionsParser.build CliOptions
                 |> OptionsParser.with
-                    (Option.optionalKeywordArg "glue-arguments-function"
-                        |> Option.validateMapIfPresent Ok
+                    (Option.optionalKeywordArg "input"
+                        |> Option.withDefault "docs.json"
                     )
                 |> OptionsParser.with
-                    (Option.optionalKeywordArg "tags"
-                        |> Option.validateMapIfPresent Ok
+                    (Option.optionalKeywordArg "output"
+                        |> Option.withDefault "docs.md"
                     )
-                |> OptionsParser.with (Option.optionalKeywordArg "compiler")
-                |> OptionsParser.with (Option.optionalKeywordArg "add-dependencies")
-                |> OptionsParser.with (Option.flag "watch")
                 |> OptionsParser.with
-                    (Option.optionalKeywordArg "report"
-                        |> Option.withDefault "console"
-                        |> Option.oneOf Console
-                            [ ( "json", Json )
-                            , ( "junit", Junit )
-                            , ( "console", Console )
+                    (Option.optionalKeywordArg "format"
+                        |> Option.withDefault "markdown"
+                        |> Option.oneOf Markdown
+                            [ ( "markdown", Markdown )
+                            , ( "html", Html )
                             ]
                     )
-                |> OptionsParser.withRestArgs (Option.restArgs "TESTFILES")
-                |> OptionsParser.map RunTests
             )
