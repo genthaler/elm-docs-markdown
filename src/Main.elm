@@ -1,14 +1,39 @@
 module Main exposing (main)
 
+import Cli.Option as Option
+import Cli.OptionsParser as OptionsParser
 import Cli.Program as Program
 import Elm.Docs
 import Json.Decode as D
-import Model exposing (CliOptions, Model(..), toExit, toInit, toReading, toWriting)
-import Options exposing (config)
+import Model exposing (CliOptions, Format(..), Model(..), toExit, toInit, toReading, toWriting)
 import Ports exposing (Response(..), echoRequest, exit, fileReadRequest, fileWriteRequest, response)
 import Result.Extra
 import StateMachine exposing (State(..), map, untag)
 import Task
+import Markdown
+
+config : Program.Config CliOptions
+config =
+    Program.config
+        |> Program.add
+            (OptionsParser.build CliOptions
+                |> OptionsParser.with
+                    (Option.optionalKeywordArg "input"
+                        |> Option.withDefault "docs.json"
+                    )
+                |> OptionsParser.with
+                    (Option.optionalKeywordArg "output"
+                        |> Option.withDefault "docs.md"
+                    )
+                |> OptionsParser.with
+                    (Option.optionalKeywordArg "format"
+                        |> Option.withDefault "markdown"
+                        |> Option.oneOf Markdown
+                            [ ( "markdown", Markdown )
+                            , ( "html", Html )
+                            ]
+                    )
+            )
 
 
 message : msg -> Cmd msg
@@ -39,7 +64,7 @@ update _ msg model =
                     (\moduleList ->
                         ( toWriting <| State { output = state |> untag |> .output, format = state |> untag |> .format }
                         , fileWriteRequest
-                            [ ( [ state |> untag |> .output ], Debug.todo "pretty print moduleList" moduleList ) ]
+                            [ ( [ state |> untag |> .output ], Markdown.render moduleList ) ]
                         )
                     )
 
