@@ -56,11 +56,7 @@ update _ msg model =
         ( Init state, _ ) ->
             Ok
                 ( toReading state
-                , Cmd.batch
-                    [ echoRequest ("Reading " ++ (state |> untag |> .input))
-                    , fileReadRequest (state |> untag |> .input)
-                    , echoRequest ("Finished reading " ++ (state |> untag |> .input))
-                    ]
+                , fileReadRequest (state |> untag |> .input)
                 )
 
         ( Reading state, Stdout stdout ) ->
@@ -71,17 +67,13 @@ update _ msg model =
                 |> Result.map
                     (\moduleList ->
                         ( toWriting <| State { output = state |> untag |> .output, format = state |> untag |> .format }
-                        , Cmd.batch
-                            [ echoRequest ("Writing " ++ (state |> untag |> .output))
-                            , fileWriteRequest
-                                ( state |> untag |> .output, Markdown.render moduleList )
-                            , echoRequest ("Finished writing " ++ (state |> untag |> .output))
-                            ]
+                        , fileWriteRequest
+                            ( state |> untag |> .output, Markdown.render moduleList )
                         )
                     )
 
         ( Writing _, Stdout _ ) ->
-            Ok ( toExit <| State {}, Cmd.batch [ exit 0 "Done" ] )
+            Ok ( toExit <| State {}, exit 0 "Done" )
 
         ( state, cmd ) ->
             let

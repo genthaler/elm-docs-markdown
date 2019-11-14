@@ -1,6 +1,6 @@
 {
   "name": "@genthaler/elm-docs-render",
-  "version": "1.0.3",
+  "version": "1.0.5",
   "description": "Render the output of elm make --docs",
   "main": "index.js",
   "bin": {
@@ -31,7 +31,6 @@
     "prepublish": "elm make src/Main.elm --output=elm.js"
   },
   "dependencies": {
-    "rambda": "^1.2.2",
     "shelljs": "^0.8.2"
   },
   "devDependencies": {
