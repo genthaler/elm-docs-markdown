@@ -1,29 +1,28 @@
 {
-  "name": "elm-docs-markdown",
-  "description": "An implementation of Cucumber in Elm",
-  "version": "0.0.1",
-  "license": "BSD3",
-  "author": "Gunther Enthaler <genthaler@users.noreply.github.com>",
+  "name": "@genthaler/elm-docs-render",
+  "version": "1.0.0",
+  "description": "Render the output of elm make --docs",
+  "main": "index.js",
+  "private": false,
+  "directories": {
+    "doc": "doc"
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/genthaler/elm-docs-markdown"
-  },
-  "bugs": {
-    "url": "https://github.com/genthaler/elm-docs-markdown/issues"
-  },
-  "bin": {
-    "elm-docs-markdown": "index.js"
+    "url": "git+https://github.com/genthaler/elm-docs-render.git"
   },
   "keywords": [
     "elm",
     "docs",
     "markdown"
   ],
-  "private": true,
+  "author": "Gunther Enthaler <genthaler@users.noreply.github.com>",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/genthaler/elm-docs-render/issues"
+  },
+  "homepage": "https://github.com/genthaler/elm-docs-render#readme",
   "scripts": {
-    "pretest": "elm-verify-examples",
-    "test": "elm-test",
-    "posttest": "shx rm -rf tests/VerifyExamples",
     "prepack": "elm make src/Main.elm --output=elm.js"
   },
   "dependencies": {
