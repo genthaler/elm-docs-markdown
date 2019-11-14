@@ -5,7 +5,7 @@ import Json.Decode.Extra as JDE
 import Json.Encode as E
 import Result.Extra
 
- 
+
 
 -- Request
 
@@ -13,27 +13,22 @@ import Result.Extra
 port request : E.Value -> Cmd msg
 
 
-fileReadRequest : List String -> Cmd msg
-fileReadRequest paths =
+fileReadRequest : String -> Cmd msg
+fileReadRequest path =
     request <|
         E.object
             [ ( "command", E.string "FileRead" )
-            , ( "paths", E.list E.string paths )
+            , ( "path", E.string path )
             ]
 
 
-fileWriteRequest : List ( List String, String ) -> Cmd msg
-fileWriteRequest files =
+fileWriteRequest : ( String, String ) -> Cmd msg
+fileWriteRequest ( path, content ) =
     request <|
         E.object
             [ ( "command", E.string "FileWrite" )
-            , ( "files"
-              , E.list
-                    (\( path, content ) ->
-                        E.object [ ( "path", E.list E.string path ), ( "content", E.string content ) ]
-                    )
-                    files
-              )
+            , ( "path", E.string path )
+            , ( "content", E.string content )
             ]
 
 

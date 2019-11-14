@@ -5,12 +5,13 @@ import Cli.OptionsParser as OptionsParser
 import Cli.Program as Program
 import Elm.Docs
 import Json.Decode as D
+import Markdown
 import Model exposing (CliOptions, Format(..), Model(..), toExit, toInit, toReading, toWriting)
 import Ports exposing (Response(..), echoRequest, exit, fileReadRequest, fileWriteRequest, response)
 import Result.Extra
 import StateMachine exposing (State(..), map, untag)
 import Task
-import Markdown
+
 
 config : Program.Config CliOptions
 config =
@@ -43,17 +44,24 @@ message msg =
 
 init : Program.FlagsIncludingArgv flags -> CliOptions -> ( Model, Cmd Response )
 init _ options =
-    ( toInit options, Cmd.batch [ echoRequest ("Reading " ++ options.input), message NoOp ] )
+    ( toInit options, message NoOp )
 
 
 update : CliOptions -> Response -> Model -> ( Model, Cmd Response )
 update _ msg model =
-    (case Debug.log (Debug.toString msg) ( model, msg ) of
+    (case ( model, msg ) of
         ( _, Stderr stderr ) ->
             Err stderr
 
         ( Init state, _ ) ->
-            Ok ( toReading state, fileReadRequest [ state |> untag |> .input ] )
+            Ok
+                ( toReading state
+                , Cmd.batch
+                    [ echoRequest ("Reading " ++ (state |> untag |> .input))
+                    , fileReadRequest (state |> untag |> .input)
+                    , echoRequest ("Finished reading " ++ (state |> untag |> .input))
+                    ]
+                )
 
         ( Reading state, Stdout stdout ) ->
             stdout
@@ -63,8 +71,12 @@ update _ msg model =
                 |> Result.map
                     (\moduleList ->
                         ( toWriting <| State { output = state |> untag |> .output, format = state |> untag |> .format }
-                        , fileWriteRequest
-                            [ ( [ state |> untag |> .output ], Markdown.render moduleList ) ]
+                        , Cmd.batch
+                            [ echoRequest ("Writing " ++ (state |> untag |> .output))
+                            , fileWriteRequest
+                                ( state |> untag |> .output, Markdown.render moduleList )
+                            , echoRequest ("Finished writing " ++ (state |> untag |> .output))
+                            ]
                         )
                     )
 
@@ -74,7 +86,7 @@ update _ msg model =
         ( state, cmd ) ->
             let
                 _ =
-                    Debug.log "( state, cmd )" ( state, cmd )
+                    ( state, cmd )
             in
             Err "Invalid State Transition"
     )

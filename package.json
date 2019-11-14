@@ -24,7 +24,7 @@
     "pretest": "elm-verify-examples",
     "test": "elm-test",
     "posttest": "shx rm -rf tests/VerifyExamples",
-    "prepack" : "elm make src/Main.elm --output=elm.js"
+    "prepack": "elm make src/Main.elm --output=elm.js"
   },
   "dependencies": {
     "rambda": "^1.2.2",
