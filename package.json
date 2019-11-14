@@ -1,9 +1,11 @@
 {
   "name": "@genthaler/elm-docs-render",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Render the output of elm make --docs",
   "main": "index.js",
-  "private": false,
+  "bin": {
+    "elm-docs-render": "./index.js"
+  },
   "directories": {
     "doc": "doc"
   },
