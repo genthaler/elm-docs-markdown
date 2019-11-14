@@ -4,23 +4,64 @@ import Elm.Docs exposing (..)
 import Elm.Type exposing (..)
 
 
+br : String
+br =
+    "\\\n"
+
+
+brs : List String -> String
+brs =
+    String.join br
+
+
+spaces : List String -> String
+spaces =
+    String.join " "
+
+
+para : String
+para =
+    "\n\n"
+
+
+paras : List String -> String
+paras =
+    String.join para
+
+
+hr : String
+hr =
+    "\n\n----\n\n"
+
+
+h1 : String -> String
+h1 string =
+    string ++ "\n====\n"
+
+
+h2 : String -> String
+h2 string =
+    string ++ "\n----\n"
+
+
+em : String -> String
+em string =
+    "*" ++ string ++ "*"
+
+
+strong : String -> String
+strong string =
+    "**" ++ string ++ "**"
+
+
 render : List Elm.Docs.Module -> String
 render =
-    List.map renderModule >> String.join "\n-----------------\n"
+    List.map renderModule >> String.join para
 
 
-{-| All the documentation for a particular module.
-
-  - name is the module name
-
-  - comment is the module comment
-
-The actual exposed stuff is broken into categories.
-
--}
 renderModule : Module -> String
-renderModule ({ name, comment, unions, aliases, values, binops } as module_) =
-    module_ |> Elm.Docs.toBlocks |> List.map renderBlock |> String.join "\n-----------------\n"
+renderModule module_ =
+    (h1 module_.name :: (module_ |> Elm.Docs.toBlocks |> List.map renderBlock)) |> paras
 
 
 renderBlock : Elm.Docs.Block -> String
@@ -45,114 +86,50 @@ renderBlock block =
             unknown
 
 
-{-| Documentation for a type alias. For example, if you had the source code:
-
-    {-| pair of values -}
-    type alias Pair a = ( a, a )
-
-When it became an Alias it would be like this:
-
-    { name = "Pair"
-    , comment = " pair of values "
-    , args = ["a"]
-    , tipe = Tuple [ Var "a", Var "a" ]
-    }
-
--}
 renderAlias : Alias -> String
 renderAlias { name, comment, args, tipe } =
-    [ name, comment ] ++ args ++ [ renderType tipe ] |> String.join "\n"
-
-
-
--- Documentation for values and functions. For example, if you had the source code:
--- {-| do not do anything -}
--- identity : a -> a
--- identity value =
---   value
--- The Value would look like this:
--- { name = "identity"
--- , comment = " do not do anything "
--- , tipe = Lambda (Var "a") (Var "a")
--- }
+    "> " ++ ([ (em "type alias" :: strong name :: args) |> spaces, renderType tipe, comment ] |> paras)
 
 
 renderValue : Value -> String
 renderValue { name, comment, tipe } =
-    [ name, comment, renderType tipe ] |> String.join "\n"
-
-
-
--- Documentation for a union type. For example, if you had the source code:
--- {-| maybe -}
--- type Maybe a = Nothing | Just a
--- When it became a Union it would be like this:
--- { name = "Maybe"
--- , comment = " maybe "
--- , args = ["a"]
--- , tipe =
---     [ ("Nothing", [])
---     , ("Just", [Var "a"])
---     ]
--- }
+    "> " ++ ([ [ strong name, ":", renderType tipe ] |> spaces, comment ] |> paras)
 
 
 renderUnion : Union -> String
 renderUnion { name, comment, args, tags } =
-    ([ name, comment ] ++ args ++ List.map renderTag tags) |> String.join "\n"
+    let
+        renderedTags =
+            if List.length tags > 0 then
+                " = " ++ (List.map renderTag tags |> String.join " | ")
+
+            else
+                ""
+    in
+    "> " ++ ([ ((em "type" :: strong name :: args) |> spaces) ++ renderedTags, comment ] |> paras)
 
 
 renderTag : ( String, List Type ) -> String
-renderTag _ =
-    ""
-
-
-
--- Documentation for binary operators. The content for (+) might look something like this:
--- { name = "+"
--- , comment = "Add numbers"
--- , tipe = Lambda (Var "number") (Lambda (Var "number") (Var "number"))
--- , associativity = Left
--- , precedence = 6
--- }8
--- type Associativity
---     = Left
---     | None
---     | Right
--- The associativity of an infix operator. This determines how we add parentheses around everything. Here are some examples:
--- 1 + 2 + 3 + 4
--- We have to do the operations in some order, so which of these interpretations should we choose?
--- ((1 + 2) + 3) + 4   -- left-associative
--- 1 + (2 + (3 + 4))   -- right-associative
--- This is really important for operators like (|>)!
--- Some operators are non-associative though, meaning we do not try to add missing parentheses. (==) is a nice example. 1 == 2 == 3 just is not allowed!
+renderTag ( tag, tipes ) =
+    em tag :: List.map renderType tipes |> spaces
 
 
 renderBinop : Binop -> String
 renderBinop { name, comment, tipe, associativity, precedence } =
-    [ name, comment, renderType tipe, renderAssociativity associativity, String.fromInt precedence ] |> String.join "\n"
+    "> " ++ ([ [ em "infix", renderAssociativity associativity, String.fromInt precedence, name, "=", renderType tipe ] |> spaces, comment ] |> paras)
 
 
 renderAssociativity : Associativity -> String
 renderAssociativity associativity =
     case associativity of
         Left ->
-            "Left"
+            "left"
 
         Right ->
-            "Right"
+            "right"
 
         None ->
-            "None"
-
-
-
--- Represent Elm types as values! Here are some examples:
--- Int            ==> Type "Int" []
--- a -> b         ==> Lambda (Var "a") (Var "b")
--- ( a, b )       ==> Tuple [ Var "a", Var "b" ]
--- Maybe a        ==> Type "Maybe" [ Var "a" ]
--- { x : Float }  ==> Record [("x", Type "Float" [])] Nothing
+            "non"
 
 
 renderType : Type -> String
@@ -168,8 +145,8 @@ renderType tipe =
             "(" ++ (List.map renderType tipes |> String.join ", ") ++ ")"
 
         Type string tipes ->
-            string :: List.map renderType tipes |> String.join " "
+            string :: List.map renderType tipes |> spaces
 
-        Record members maybeString ->
-            -- ignoring maybeString since I don't know what it's used for.
+        Record members _ ->
+            -- ignoring (Maybe String) since I don't know what it's used for.
             "{ " ++ (List.map (\( name, tipe_ ) -> name ++ " : " ++ renderType tipe_) members |> String.join ", ") ++ " }"
