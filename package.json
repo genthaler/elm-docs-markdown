@@ -25,7 +25,7 @@
   },
   "homepage": "https://github.com/genthaler/elm-docs-render#readme",
   "scripts": {
-    "prepack": "elm make src/Main.elm --output=elm.js"
+    "prepublish": "elm make src/Main.elm --output=elm.js"
   },
   "dependencies": {
     "rambda": "^1.2.2",
