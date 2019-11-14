@@ -1,6 +1,6 @@
 {
   "name": "@genthaler/elm-docs-render",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Render the output of elm make --docs",
   "main": "index.js",
   "bin": {

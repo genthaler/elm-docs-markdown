@@ -14,8 +14,6 @@ const send = worker.ports.rawResponse.send;
 
 worker.ports.request.subscribe(
   cmd => {
-    console.log(cmd);
-
     switch (cmd.command) {
       case "Echo":
         shell.echo(cmd.message);
